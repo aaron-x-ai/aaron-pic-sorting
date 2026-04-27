@@ -20,7 +20,7 @@
 ### 方式一：Git Clone（推荐）
 
 ```bash
-git clone https://github.com/aiseekway/aaron-pic-sorting.git \
+git clone https://github.com/aaron-x-ai/aaron-pic-sorting.git \
   ~/.hermes/skills/aaron-pic-sorting
 ```
 
@@ -66,7 +66,7 @@ AI 会带你走完 4 步交互式配置，确认素材目录、整理目录、�
 ### 整理后的存放结构
 
 ```
-/Users/mac/Documents/我的个人IP_2026/清华张民IP音频视频图片素材/
+/Users/mac/Documents/我的个人IP_2026/清华张民IP音频视频图片素材/清华张民IP素材图片/
 ├── 2026/                          # 无法判断的兜底目录
 │   ├── 20260405-未知-场景.jpg
 │   └── 20260405-模糊-内容.jpg

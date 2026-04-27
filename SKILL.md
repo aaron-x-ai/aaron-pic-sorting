@@ -421,7 +421,64 @@ AI 发送帮助信息：
   配置文件：~/.config/aaron-pic-sorting/config.yaml
 ```
 
-## 9. 错误处理
+## 9. 故障排除
+
+### 9.1 vision_analyze 连接失败（Connection error）
+
+**现象**：调用 `vision_analyze` 时返回 `Error analyzing image: Connection error.`
+
+**常见原因**：用户机器运行了代理软件（如 Clash/FlClash/V2Ray），但 AI 工具的 API 请求未走代理。
+
+**诊断步骤**：
+```bash
+# 1. 测试直接访问国际站点（预期超时或失败）
+curl -s https://www.google.com
+
+# 2. 检查本地代理进程
+ps aux | grep -i "clash\|v2ray\|surge"
+
+# 3. 找到代理监听端口
+lsof -p <PID> | grep LISTEN
+# 常见端口：7890(Clash), 1080(SOCKS), 8080
+
+# 4. 测试走代理是否成功
+HTTPS_PROXY=http://127.0.0.1:7890 curl -s https://www.google.com
+```
+
+**解决方案**：
+- **临时方案**：在执行整理前设置环境变量
+  ```bash
+  export HTTP_PROXY=http://127.0.0.1:7890
+  export HTTPS_PROXY=http://127.0.0.1:7890
+  ```
+- **长期方案**：开启代理软件的「系统代理」或「TUN 模式」
+- **Skill 增强**：在 `process.py` 中自动检测常见代理端口并设置环境变量
+
+### 9.2 GitHub Push 失败（认证错误）
+
+**现象**：`git push` 提示 `could not read Username for 'https://github.com'`
+
+**原因**：未配置 GitHub 认证（无 Token 或 SSH Key 未添加）
+
+**解决方案**：
+```bash
+# 方案 A：使用 SSH（推荐）
+# 1. 检查现有密钥
+ls ~/.ssh/id_*.pub
+
+# 2. 复制公钥内容
+cat ~/.ssh/id_ed25519.pub
+
+# 3. 粘贴到 https://github.com/settings/keys → New SSH key
+
+# 4. 切换远程地址为 SSH
+git remote set-url origin git@github.com:<user>/<repo>.git
+
+# 5. 推送
+git push -u origin main
+```
+
+## 10. 错误处理
 
 | 场景 | 处理方式 |
 |------|----------|
