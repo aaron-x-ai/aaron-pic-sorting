@@ -76,14 +76,12 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
         # 如果指定了配置文件，已在参数中处理
         pass
 
-    # 展开路径变量
+    # 展开路径变量（仅对 paths 下的实际路径字段展开，避免误伤 naming_template 等模板）
     src = config.get("paths", {}).get("source_root", "")
     context = {"source_root": src}
-    for section in config:
-        if isinstance(config[section], dict):
-            for key in config[section]:
-                if isinstance(config[section][key], str) and ("{" in config[section][key] or "~" in config[section][key]):
-                    config[section][key] = expand_path(config[section][key], context)
+    for key in config.get("paths", {}):
+        if isinstance(config["paths"][key], str) and ("{" in config["paths"][key] or "~" in config["paths"][key]):
+            config["paths"][key] = expand_path(config["paths"][key], context)
 
     return config
 

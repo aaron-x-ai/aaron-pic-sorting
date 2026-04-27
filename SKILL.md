@@ -1,6 +1,6 @@
 ---
 name: aaron-pic-sorting
-description: "🗂️ 个人IP素材智能整理助手。自动识别图片内容，按「工作/生活/2026」分类归档，规范命名。支持定时整理和聊天即时整理。说'整理素材'开始使用，'配置素材管理'修改设置。"
+description: "🗂️ 个人IP素材智能整理助手。自动识别图片内容，按配置动态分类（如工作/生活/我与ai/2026）归档，规范命名。分类完全由 config.yaml 驱动，无需改代码即可扩展。支持定时整理和聊天即时整理。说'整理素材'开始使用，'配置素材管理'修改设置。"
 triggers:
   - "整理素材"
   - "整理我的素材"
@@ -22,6 +22,8 @@ cron_schedule: "0 22 * * *"
 ---
 
 # aaron-pic-sorting Skill 工作流文档
+
+> 本 Skill 的核心设计原则：**分类完全由配置驱动**，`process.py` 动态读取 `config.yaml` 中的 `categories.mapping`，无需硬编码分类键。仅修改配置即可增加/删除分类目录。
 
 ## 1. 概述
 
@@ -490,7 +492,32 @@ git push -u origin main
 | batch JSON 格式错误 | 报错，不执行任何文件操作 |
 | 无新素材可整理 | 正常结束，汇总显示"本次无新素材" |
 
-## 10. 依赖
+## 12. 设计原则与波折
+
+### 动态分类（配置驱动，非硬编码）
+
+本 Skill 最初硬编码了 `work`/`life`/`default` 三个分类键，但用户在配置中增加了「我与ai」后，脚本无法识别。现在已重构为：
+
+- `stats` 初始化时从 `cat_map` 动态读取所有分类键
+- `organize` 和 `summary` 中使用 `stats[category_key]` 而非 `if/elif`
+- 日志匹配时遍历 `cat_map.items()` 动态检查
+
+**结果**：仅修改 `config.yaml` 的 `categories.mapping` 即可增加/删除分类，**process.py 永远不需要为新分类改代码**。
+
+### Vision 工具代理故障排查
+
+如果 `vision_analyze` 返回 `Connection error`：
+1. 检查是否运行了 Clash/FlClash/V2Ray 等代理软件
+2. 查找代理监听端口（常见 7890、1080、8080）
+3. 临时设置 `HTTP_PROXY` / `HTTPS_PROXY` 环境变量
+4. 或开启代理软件的「系统代理」/「TUN 模式」
+
+### GitHub Push 认证
+
+- `https://github.com` 需要 Token，推荐使用 SSH
+- 检查 `~/.ssh/id_*.pub`，粘贴到 https://github.com/settings/keys
+- 执行 `git remote set-url origin git@github.com:<user>/<repo>.git`
+- 再 `git push`
 
 - Python 3.8+
 - `pyyaml`（YAML 解析）
