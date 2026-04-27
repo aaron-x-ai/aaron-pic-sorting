@@ -157,7 +157,10 @@ def cmd_organize(args) -> int:
         return 1
 
     conn = init_db(db_path)
-    stats = {"success": 0, "skipped": 0, "failed": 0, "work": 0, "life": 0, "ai_me": 0, "default": 0}
+    # 动态初始化 stats，从 cat_map 读取所有分类键
+    stats = {"success": 0, "skipped": 0, "failed": 0}
+    for key in cat_map:
+        stats[key] = 0
 
     for item in batch:
         src = item.get("source_path", "")
@@ -224,14 +227,16 @@ def cmd_organize(args) -> int:
             # 日志
             write_log(log_file, "SUCCESS", os.path.basename(src), f"分类:{folder_name} | 目标:{target_name}")
             stats["success"] += 1
-            if category_key == "work":
-                stats["work"] += 1
-            elif category_key == "life":
-                stats["life"] += 1
-            elif category_key == "ai_me":
-                stats["ai_me"] += 1
+            # 动态分类统计
+            if category_key in stats:
+                stats[category_key] += 1
             else:
-                stats["default"] += 1
+                # 如果 category_key 不在 cat_map 中，记到 default
+                default_key = "default"
+                if default_key in stats:
+                    stats[default_key] += 1
+                else:
+                    stats[default_key] = 1
         except Exception as e:
             write_log(log_file, "ERROR", os.path.basename(src), f"处理异常:{e}")
             stats["failed"] += 1
@@ -268,19 +273,19 @@ def cmd_summary(args) -> int:
 
     cfg = load_config(args.config)
     log_file = cfg.get("paths", {}).get("log_file", "")
+    cat_map = cfg.get("categories", {}).get("mapping", {})
 
+    # 动态初始化 stats
     stats = {
         "total": 0,
         "success": 0,
         "skipped": 0,
         "failed": 0,
-        "work": 0,
-        "life": 0,
-        "ai_me": 0,
-        "default": 0,
         "cleaned": 0,
         "log_path": log_file,
     }
+    for key in cat_map:
+        stats[key] = 0
 
     if not os.path.exists(log_file):
         print(json.dumps(stats, ensure_ascii=False))
@@ -303,14 +308,20 @@ def cmd_summary(args) -> int:
             stats["total"] += 1
             if "SUCCESS" in line:
                 stats["success"] += 1
-                if "分类:工作" in line:
-                    stats["work"] += 1
-                elif "分类:生活" in line:
-                    stats["life"] += 1
-                elif "分类:我与ai" in line:
-                    stats["ai_me"] += 1
-                elif "分类:2026" in line:
-                    stats["default"] += 1
+                # 动态匹配所有分类
+                matched = False
+                for key, folder_name in cat_map.items():
+                    if f"分类:{folder_name}" in line:
+                        stats[key] += 1
+                        matched = True
+                        break
+                if not matched:
+                    # 如果没匹配上，记到 default
+                    default_key = "default"
+                    if default_key in stats:
+                        stats[default_key] += 1
+                    else:
+                        stats[default_key] = 1
             elif "SKIP" in line:
                 stats["skipped"] += 1
             elif "ERROR" in line:
