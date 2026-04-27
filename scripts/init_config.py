@@ -155,6 +155,52 @@ notification:
     return config_path
 
 
+def print_vision_notice() -> None:
+    """
+    配置生成完成后，打印 Vision 模型检查提示。
+    读取当前 Hermes 配置中的 auxiliary.vision 设置并展示给用户。
+    """
+    import yaml
+
+    hermes_config_path = os.path.expanduser("~/.hermes/config.yaml")
+    vision_cfg = {}
+    if os.path.exists(hermes_config_path):
+        try:
+            with open(hermes_config_path, "r", encoding="utf-8") as f:
+                hermes_cfg = yaml.safe_load(f) or {}
+            vision_cfg = hermes_cfg.get("auxiliary", {}).get("vision", {})
+        except Exception:
+            pass
+
+    provider = vision_cfg.get("provider", "未配置")
+    model = vision_cfg.get("model", "未配置")
+    base_url = vision_cfg.get("base_url", "")
+    has_key = bool(vision_cfg.get("api_key", ""))
+
+    print("")
+    print("━━━━━━━━━━━━━━━━━━━━")
+    print("🔍 重要提示：Vision 模型配置检查")
+    print("━━━━━━━━━━━━━━━━━━━━")
+    print("")
+    print("在图片整理过程中，本 Skill 会调用 Hermes 的 vision_analyze 工具")
+    print("来分析图片内容。请确保 Hermes 的 vision 模型已正确配置。")
+    print("")
+    print("当前 Hermes Vision 配置：")
+    print(f"  • Provider : {provider}")
+    print(f"  • Model    : {model}")
+    print(f"  • Base URL : {base_url or '(默认)'}")
+    print(f"  • API Key  : {'已配置' if has_key else '未配置（将使用默认凭据）'}")
+    print("")
+    print("💡 推荐配置（中国大陆用户立即可用）：")
+    print("  • Model : kimi-k2.6")
+    print("  • Provider : kimi-coding-cn")
+    print("  • 前提：已配置 KIMI_CN_API_KEY")
+    print("")
+    print("如需修改，请编辑 ~/.hermes/config.yaml 中的 auxiliary.vision 段落，")
+    print("或使用 Hermes CLI 的 /model 命令切换 vision 模型。")
+    print("━━━━━━━━━━━━━━━━━━━━")
+
+
 def reset_config(config_path: Optional[str] = None) -> bool:
     """
     删除现有配置文件和数据库，返回是否成功
@@ -213,6 +259,7 @@ def main():
             config_path=args.config,
         )
         print(f"GENERATED:{path}")
+        print_vision_notice()
         return
 
     # 默认：检查配置是否存在

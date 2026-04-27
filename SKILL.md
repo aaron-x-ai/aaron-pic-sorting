@@ -208,6 +208,35 @@ python3 ~/.hermes/skills/aaron-pic-sorting/scripts/init_config.py \
 - 生成 `~/.config/aaron-pic-sorting/config.yaml`
 - 初始化 SQLite 指纹数据库
 - 如 enabled=true，创建 Cron Job：`cronjob create` 每天执行本 Skill 的定时工作流
+- **打印 Vision 模型配置检查提示**（由 `init_config.py --generate` 自动输出）
+
+### Step 6b: Vision 模型配置检查（自动生成）
+
+配置生成脚本会自动读取当前 Hermes 的 `auxiliary.vision` 配置并输出提示：
+
+```
+━━━━━━━━━━━━━━━━━━━━
+🔍 重要提示：Vision 模型配置检查
+━━━━━━━━━━━━━━━━━━━━
+
+在图片整理过程中，本 Skill 会调用 Hermes 的 vision_analyze 工具
+来分析图片内容。请确保 Hermes 的 vision 模型已正确配置。
+
+当前 Hermes Vision 配置：
+  • Provider : kimi-coding-cn
+  • Model    : kimi-k2.6
+  • Base URL : (默认)
+  • API Key  : 未配置（将使用默认凭据）
+
+💡 推荐配置（中国大陆用户立即可用）：
+  • Model : kimi-k2.6
+  • Provider : kimi-coding-cn
+  • 前提：已配置 KIMI_CN_API_KEY
+
+如需修改，请编辑 ~/.hermes/config.yaml 中的 auxiliary.vision 段落，
+或使用 Hermes CLI 的 /model 命令切换 vision 模型。
+━━━━━━━━━━━━━━━━━━━━
+```
 
 ## 4. 配置管理（随时重配）
 
@@ -425,7 +454,30 @@ AI 发送帮助信息：
 
 ## 9. 故障排除
 
-### 9.1 vision_analyze 连接失败（Connection error）
+### 9.3 文件被放到了错误目录（如 `~/.hermes/hermes-agent/`）
+
+**现象**：整理完成后，文件出现在当前工作目录（如 `~/.hermes/hermes-agent/20260427-xxx.jpg`）而不是配置的目标目录。
+
+**原因**：`load_config()` 中的路径展开逻辑误把含 `{` 的字符串（如 `naming_template: "{date}-{tag1}-{tag2}.{ext}"`）也当作路径，执行了 `os.path.abspath()`，导致模板被解析成绝对路径。
+
+**修复**（已在 v1.1.1 修复）：
+- 路径展开应**仅作用于 `paths` section**，不要遍历所有配置字段
+- 修改 `utils.py` 中的 `load_config()`：
+```python
+# ❌ 错误：遍历所有 section，误伤 naming_template
+for section in config:
+    if isinstance(config[section], dict):
+        for key in config[section]:
+            if isinstance(config[section][key], str) and "{" in config[section][key]:
+                config[section][key] = expand_path(config[section][key], context)
+
+# ✅ 正确：只对 paths section 展开
+for key in config.get("paths", {}):
+    if isinstance(config["paths"][key], str) and "{" in config["paths"][key]:
+        config["paths"][key] = expand_path(config["paths"][key], context)
+```
+
+### 9.4 vision_analyze 连接失败（Connection error）
 
 **现象**：调用 `vision_analyze` 时返回 `Error analyzing image: Connection error.`
 
