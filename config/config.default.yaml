@@ -1,0 +1,147 @@
+# ============================================================
+# aaron-pic-sorting 默认配置文件
+# 首次使用时会被复制到 ~/.config/aaron-pic-sorting/config.yaml
+# ============================================================
+
+# === 1. 基础路径配置 ===
+paths:
+  # 素材源根目录：本地存放待整理图片的目录
+  source_root: "/Users/mac/Downloads/IP素材"
+  
+  # 整理目标根目录：分类归档后的存放目录
+  target_root: "/Users/mac/Documents/我的个人IP_2026/清华张民IP音频视频图片素材"
+  
+  # 日志文件路径（支持 {source_root} 变量）
+  log_file: "{source_root}/aaron-pic-sorting.log"
+  
+  # 去重数据库路径（存储已处理文件的 MD5 指纹）
+  fingerprint_db: "~/.config/aaron-pic-sorting/processed.db"
+
+# === 2. 分类目录映射 ===
+categories:
+  # 分类键与目标子目录的映射（键名固定，值可改）
+  mapping:
+    work: "工作"      # 工作类素材
+    life: "生活"      # 生活类素材
+    default: "2026"   # 兜底目录（无法判断时）
+  
+  # 分类判定辅助提示（增强 Vision 准确率，可自定义关键词）
+  hints:
+    work: "讲课、会议、商务、PPT、演讲、培训、办公、签约、发布会"
+    life: "家庭、旅行、休闲、日常、聚餐、运动、登山、海边"
+
+# === 3. 定时触发配置 ===
+schedule:
+  # Cron 表达式（默认每天 22:00）
+  cron: "0 22 * * *"
+  
+  # 是否启用定时任务
+  enabled: true
+  
+  # 时区（留空则使用系统时区）
+  timezone: "Asia/Shanghai"
+
+# === 4. 文件处理配置 ===
+processing:
+  # 支持的图片格式（小写，无需带点）
+  supported_formats:
+    - jpg
+    - jpeg
+    - png
+    - webp
+    - gif
+    - heic
+    - raw
+    - tif
+    - tiff
+  
+  # 日期提取优先级：exif → mtime → now
+  date_priority:
+    - exif
+    - mtime
+    - now
+  
+  # 命名模板（可用变量：{date}, {tag1}, {tag2}, {ext}）
+  naming_template: "{date}-{tag1}-{tag2}.{ext}"
+  
+  # 文件名冲突处理策略
+  # rename = 自动追加序号（如 _1, _2）
+  # skip   = 跳过该文件
+  # overwrite = 覆盖（危险，不推荐）
+  conflict_strategy: "rename"
+  
+  # 标签配置
+  tags:
+    language: "zh"     # 标签语言：zh | en
+    max_length: 10     # 单个标签最大字符数
+    separator: "-"     # 非法字符替换符
+  
+  # 已处理目录配置
+  processed_dir:
+    # 目录命名模板（可用变量：{date}）
+    name_template: "{date}-已处理"
+    # 已处理目录保留天数（超过自动删除）
+    retention_days: 30
+
+# === 5. Vision 分析配置 ===
+vision:
+  # 分析模型（default = 由 AI 调用 vision_analyze 工具处理）
+  model: "default"
+  
+  # 分类与标签提取的 Prompt（高级用户可自定义）
+  classification_prompt: |
+    请分析这张图片，判断它属于以下哪个场景：
+    - 工作：商务、讲课、会议、演讲、培训、办公相关
+    - 生活：家庭、旅行、休闲、日常、非工作社交
+    - 无法判断：内容模糊，无法明确归类
+    
+    请同时提取2个最贴切的中文标签（每个不超过10个字）。
+    
+    请以 JSON 格式输出：
+    {
+      "category": "work|life|default",
+      "tags": ["标签1", "标签2"],
+      "confidence": 0.95
+    }
+
+# === 6. 聊天交互配置 ===
+chat:
+  # 触发整理的关键词列表（AI 识别用）
+  trigger_keywords:
+    - "整理素材"
+    - "整理我的素材"
+    - "清华张民素材"
+    - "素材整理"
+    - "图片分类"
+    - "我的IP素材"
+    - "设置图片整理"
+  
+  # 转存后是否清理通信软件缓存文件
+  cleanup_cache: true
+  
+  # "仅转存、不立即整理"的指令关键词
+  store_only_keywords:
+    - "先放到素材目录"
+    - "仅保存不整理"
+
+# === 7. 通知/汇总消息配置 ===
+notification:
+  # 任务完成后是否输出汇总消息
+  enabled: true
+  
+  # 汇总消息模板（支持以下变量）
+  # {total}, {success}, {work}, {life}, {default}, 
+  # {skipped}, {failed}, {cleaned}, {log_path}
+  summary_template: |
+    🗂️ 素材整理完成（aaron-pic-sorting）
+    ━━━━━━━━━━━━━━━━━━━━
+    📁 本次扫描：{total} 张
+    ✅ 成功整理：{success} 张
+       └─ 工作：{work} 张
+       └─ 生活：{life} 张
+       └─ 2026（兜底）：{default} 张
+    ⏭️  跳过重复：{skipped} 张
+    ❌ 处理失败：{failed} 张（详见日志）
+    🗑️  已清理旧目录：{cleaned} 个
+    ━━━━━━━━━━━━━━━━━━━━
+    📍 日志查看：{log_path}
