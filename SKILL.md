@@ -171,6 +171,26 @@ python3 ~/.hermes/skills/aaron-pic-sorting/scripts/init_config.py \
 ✅ 配置确认完成！正在生成配置文件...
 
 ━━━━━━━━━━━━━━━━━━━━
+🔍 重要提示：Vision 模型配置检查
+━━━━━━━━━━━━━━━━━━━━
+
+在图片整理过程中，本 Skill 会调用 Hermes 的 vision_analyze 工具
+来分析图片内容。请确保 Hermes 的 vision 模型已正确配置。
+
+当前 Hermes Vision 配置：
+  • Provider : kimi-coding-cn
+  • Model    : kimi-k2.6
+  • Base URL : (默认)
+  • API Key  : 未配置（将使用默认凭据）
+
+💡 推荐配置（中国大陆用户立即可用）：
+  • Model : kimi-k2.6
+  • Provider : kimi-coding-cn
+  • 前提：已配置 KIMI_CN_API_KEY
+
+如需修改，请编辑 ~/.hermes/config.yaml 中的 auxiliary.vision 段落，
+或使用 Hermes CLI 的 /model 命令切换 vision 模型。
+━━━━━━━━━━━━━━━━━━━━
 📋 你的配置摘要
 ━━━━━━━━━━━━━━━━━━━━
 
@@ -209,34 +229,6 @@ python3 ~/.hermes/skills/aaron-pic-sorting/scripts/init_config.py \
 - 初始化 SQLite 指纹数据库
 - 如 enabled=true，创建 Cron Job：`cronjob create` 每天执行本 Skill 的定时工作流
 - **打印 Vision 模型配置检查提示**（由 `init_config.py --generate` 自动输出）
-
-### Step 6b: Vision 模型配置检查（自动生成）
-
-配置生成脚本会自动读取当前 Hermes 的 `auxiliary.vision` 配置并输出提示：
-
-```
-━━━━━━━━━━━━━━━━━━━━
-🔍 重要提示：Vision 模型配置检查
-━━━━━━━━━━━━━━━━━━━━
-
-在图片整理过程中，本 Skill 会调用 Hermes 的 vision_analyze 工具
-来分析图片内容。请确保 Hermes 的 vision 模型已正确配置。
-
-当前 Hermes Vision 配置：
-  • Provider : kimi-coding-cn
-  • Model    : kimi-k2.6
-  • Base URL : (默认)
-  • API Key  : 未配置（将使用默认凭据）
-
-💡 推荐配置（中国大陆用户立即可用）：
-  • Model : kimi-k2.6
-  • Provider : kimi-coding-cn
-  • 前提：已配置 KIMI_CN_API_KEY
-
-如需修改，请编辑 ~/.hermes/config.yaml 中的 auxiliary.vision 段落，
-或使用 Hermes CLI 的 /model 命令切换 vision 模型。
-━━━━━━━━━━━━━━━━━━━━
-```
 
 ## 4. 配置管理（随时重配）
 
