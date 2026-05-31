@@ -36,6 +36,25 @@ git clone https://github.com/aaron-x-ai/aaron-pic-sorting.git \
 1. 下载并解压到 `~/.hermes/skills/aaron-pic-sorting/`
 2. 确保目录结构完整
 
+### 开发者：开发仓与 Hermes 运行位分离
+
+| 用途 | 路径 |
+|------|------|
+| **开发仓库（Git）** | 本机 monorepo 内 `aaron-pic-sorting/`（或任意 `git clone` 目录） |
+| **GitHub** | https://github.com/aaron-x-ai/aaron-pic-sorting |
+| **Hermes 运行（Skill 代码）** | `~/.hermes/skills/aaron-pic-sorting/` |
+| **运行期用户数据** | `~/.config/aaron-pic-sorting/`（`config.yaml`、`processed.db`） |
+
+日常开发在**开发仓**改代码 → `git push` → 同步到 Hermes：
+
+```bash
+cd /path/to/aaron-pic-sorting   # 开发仓根目录
+bash scripts/sync_to_hermes.sh  # 覆盖 ~/.hermes/skills/aaron-pic-sorting（不含 .git）
+hermes skills list | grep aaron-pic-sorting
+```
+
+**不要**在 `~/.hermes/skills/aaron-pic-sorting` 里直接改代码并提交；若该目录仍有 `.git`，完成迁移后可删除，避免与开发仓混淆。
+
 ---
 
 ## 🎯 第一次使用（必读）
